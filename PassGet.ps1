@@ -1,6 +1,11 @@
 ﻿### Password Get Utility
 $AppVersion = "1.0.0.0"
 
+[char[]]$StrArray1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray()
+[char[]]$StrArray2 = "abcdefghijklmnopqrstuvwxyz".ToCharArray()
+[char[]]$StrArray3 = "1234567890".ToCharArray()
+[char[]]$StrArray4 = ([char]"'" + '`-=~ !@#$%^&*()_+{}[]:";<>?,./|\').ToCharArray()
+
 Do {
     Write-Host "Use default parameters? (Y/n): " -ForegroundColor Yellow -no
     $SkipCustomizations = Read-Host
@@ -30,24 +35,25 @@ Do {
 
         Write-Host "`nThe next parameters define weights of different types of characters in the password. If all weights are equal to zero, then all types of characters have the same weight." -ForegroundColor Cyan
 
-        Write-Host "`nPassword must have at least # of uppercase letters in it. Default 0: " -ForegroundColor Yellow -no
+        Write-Host "`nPassword must have at least # of uppercase letters A..Z in it. Default 0: " -ForegroundColor Yellow -no
         $Weight1 = Read-Host
         If (-Not $Weight1) {$Weight1 = 0}
 
-        Write-Host "Password must have at least # of lowercase letters in it. Default 0: " -ForegroundColor Yellow -no
+        Write-Host "Password must have at least # of lowercase letters a..z in it. Default 0: " -ForegroundColor Yellow -no
         $Weight2 = Read-Host
         If (-Not $Weight2) {$Weight2 = 0}
 
-        Write-Host "Password must have at least # of digits. Default 0: " -ForegroundColor Yellow -no
+        Write-Host "Password must have at least # of digits 0..9 in it. Default 0: " -ForegroundColor Yellow -no
         $Weight3 = Read-Host
         If (-Not $Weight3) {$Weight3 = 0}
 
-        Write-Host "Password must have at least # of other symbols. Default 0: " -ForegroundColor Yellow -no
+        Write-Host "Password must have at least # of other symbols $($StrArray4 -join '') in it. Default 0: " -ForegroundColor Yellow -no
         $Weight4 = Read-Host
         If (-Not $Weight4) {$Weight4 = 0}
 
         Write-Host "Enter the characters you want to exclude from passwords: " -ForegroundColor Yellow -no
-        $Exclusions = Read-Host
+        $Exclusions = (Read-Host)
+        If ($Exclusions) {$Exclusions = $Exclusions.ToCharArray()}
 
         If ($PasswordLength -lt 4) {Write-Host "Passwords must be at least 4 characters long" ; $NoErrors = $False}
         If (($Weight1 + $Weight2 + $Weight3 + $Weight4) -gt $PasswordLength) {Write-Host ("The sum of weights exceeds the specified password length: " + $Weight1 + "+" + $Weight2 + "+" + $Weight3 + "+" + $Weight4 + " > " + $PasswordLength) ; $NoErrors = $False}
@@ -55,10 +61,14 @@ Do {
 } Until ($NoErrors)
 
 ################## Execution
-[char[]]$StrArray1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray()
-[char[]]$StrArray2 = "abcdefghijklmnopqrstuvwxyz".ToCharArray()
-[char[]]$StrArray3 = "1234567890".ToCharArray()
-[char[]]$StrArray4 = (' `-=~!@#$%^&*()_+{}[]:";<>?,./|\'+[char]"'").ToCharArray()
+if ($Exclusions) {
+    1..4 | % {
+        $Index = $_
+        [char[]] $Matches = $null
+        $Matches += (Get-Variable -Name StrArray$_).Value | ? {$Exclusions.IndexOf([char]$_) -ne -1}
+        $Matches | % {(Get-Variable -Name StrArray$Index).Value = (((Get-Variable -Name StrArray$Index).Value -join "") -creplace "[$_]","").ToCharArray()}
+    }
+}
 
 $StrBinValue = "1111"
 if (($Weight1 + $Weight2 + $Weight3 + $Weight4) -eq 0) {$Weight1 = [math]::Floor($PasswordLength/4) ; $Weight2 = [math]::Floor($PasswordLength/4) ; $Weight3 = [math]::Floor($PasswordLength/4) ; $Weight4 = [math]::Floor($PasswordLength/4)} else {
