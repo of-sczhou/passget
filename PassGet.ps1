@@ -56,7 +56,7 @@ Do {
         If ($Exclusions) {$Exclusions = $Exclusions.ToCharArray()}
 
         If ($PasswordLength -lt 4) {Write-Host "Passwords must be at least 4 characters long" ; $NoErrors = $False}
-        If (($Weight1 + $Weight2 + $Weight3 + $Weight4) -gt $PasswordLength) {Write-Host ("The sum of weights exceeds the specified password length: " + $Weight1 + "+" + $Weight2 + "+" + $Weight3 + "+" + $Weight4 + " > " + $PasswordLength) ; $NoErrors = $False}
+        If (([int]$Weight1 + [int]$Weight2 + [int]$Weight3 + [int]$Weight4) -gt [int]$PasswordLength) {Write-Host ("The sum of weights exceeds the specified password length: " + $Weight1 + "+" + $Weight2 + "+" + $Weight3 + "+" + $Weight4 + " > " + $PasswordLength) ; $NoErrors = $False}
     }
 } Until ($NoErrors)
 
